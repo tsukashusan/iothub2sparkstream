@@ -31,15 +31,22 @@ object IotHub2SparkStream extends Greeting with App {
                            .format("eventhubs")
                            .options(eventhubParameters)
                            .load()
+    val streamingDataFrame = inputStream.selectExpr("CAST (body AS STRING) AS JSON", "creationTime")
     //val streamingQuery1 = inputStream.writeStream.
     //outputMode("append").
     //format("console").start().awaitTermination()
-    val streamingQuery1 = inputStream.writeStream.
+    //val streamingQuery1 = inputStream.writeStream.
+    //  outputMode("append").
+    //  trigger(ProcessingTime("10 seconds")).
+    //  option("compress", "zlib").
+    //  option("checkpointLocation", "/tmp/checkpoit/to/checkpoint/dir").
+    //  format("orc").option("path", "/tmp/checkpoint_path" + "/ETL").partitionBy("creationTime").start()
+    val streamingQuery1 = streamingDataFrame.writeStream.
       outputMode("append").
       trigger(ProcessingTime("10 seconds")).
       option("compress", "zlib").
       option("checkpointLocation", "/tmp/checkpoit/to/checkpoint/dir").
-      format("orc").option("path", "/tmp/checkpoint_path" + "/ETL").partitionBy("creationTime").start()
+      format("csv").option("path", "/tmp/checkpoint_path_csv" + "/ETL").partitionBy("creationTime").start()
     streamingQuery1.awaitTermination()
   }
 }
